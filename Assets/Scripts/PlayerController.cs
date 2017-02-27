@@ -116,7 +116,7 @@ public class PlayerController : MonoBehaviour
                 //die here
             }
             healthBar.transform.localScale = new Vector2(currentHealth / maxHealth, healthBar.transform.localScale.y);
-            healthBar.transform.position = new Vector2(healthBar.transform.position.x - currentHealth / maxHealth, healthBar.transform.position.y);
+            healthBar.transform.position = new Vector2(healthBar.transform.position.x - (currentHealth / maxHealth)/4, healthBar.transform.position.y);
 
             //Particle effect here
 
