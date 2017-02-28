@@ -13,7 +13,9 @@ public class PlayerController : MonoBehaviour
     public float leftRightFactor = 0.3f;
     public float knockUpFactor = 0.9f;
 
+    public bool dead = false;
     bool facingRight = true;
+    bool hpBarShown = false;
 
     public float applyForceTime = 0.5f;
     float currentApplyForceTime;
@@ -22,6 +24,7 @@ public class PlayerController : MonoBehaviour
     Vector2 collisionDirection;
 
     public GameObject healthBar;
+    public GameObject healthBarParent;
 
     public bool grounded = false;
     public Transform groundCheck;
@@ -33,6 +36,7 @@ public class PlayerController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        healthBarParent.SetActive(false);
         currentHealth = maxHealth;
         rigidBody = GetComponent<Rigidbody2D>();
     }
@@ -100,35 +104,49 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        GameObject attackObject = other.gameObject;
-        if (attackObject.tag == "Attack")
+        if (!dead) //Don't consume attacks if already dead
         {
-            recentlyCollided = true;
-            Attack attackScript = attackObject.GetComponent<Attack>();
-            collisionForce = attackScript.collisionForce;
-            collisionDirection = attackScript.getDirection();
-            currentApplyForceTime = applyForceTime;
+            if (!hpBarShown) healthBarParent.SetActive(true);
 
-            currentHealth -= attackScript.damage;
-            if (currentHealth <= 0)
+            GameObject attackObject = other.gameObject;
+            if (attackObject.tag == "Attack")
             {
-                currentHealth = 0;
-                //die here
+                recentlyCollided = true;
+                Attack attackScript = attackObject.GetComponent<Attack>();
+                collisionForce = attackScript.collisionForce;
+                collisionDirection = attackScript.getDirection();
+                currentApplyForceTime = applyForceTime;
+
+                currentHealth -= attackScript.damage;
+                if (currentHealth <= 0)
+                {
+                    currentHealth = 0;
+                    //die here
+                    dead = true;
+                }
+
+                Vector2 healthScale = healthBar.transform.localScale;
+                healthScale.x = currentHealth / maxHealth;
+                healthBar.transform.localScale = healthScale;
+
+                //Particle effect here
+
+                Destroy(attackObject);
             }
-            healthBar.transform.localScale = new Vector2(currentHealth / maxHealth, healthBar.transform.localScale.y);
-            healthBar.transform.position = new Vector2(healthBar.transform.position.x - (currentHealth / maxHealth)/4, healthBar.transform.position.y);
-
-            //Particle effect here
-
-            Destroy(attackObject);
         }
     }
 
     void Flip()
     {
         facingRight = !facingRight;
-        Vector3 theScale = transform.localScale;
+        Vector2 theScale = transform.localScale;
         theScale.x *= -1;
+        
+        //fix the health bar flip
+        Vector2 healthParentScale = healthBarParent.transform.localScale;
+        healthParentScale.x *= -1;
+        healthBarParent.transform.localScale = healthParentScale;
+        
         transform.localScale = theScale;
     }
 }
