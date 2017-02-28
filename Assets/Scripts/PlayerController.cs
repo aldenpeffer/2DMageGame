@@ -138,15 +138,7 @@ public class PlayerController : MonoBehaviour
 
     void Flip()
     {
+        GetComponent<SpriteRenderer>().flipX = !GetComponent<SpriteRenderer>().flipX;
         facingRight = !facingRight;
-        Vector2 theScale = transform.localScale;
-        theScale.x *= -1;
-        
-        //fix the health bar flip
-        Vector2 healthParentScale = healthBarParent.transform.localScale;
-        healthParentScale.x *= -1;
-        healthBarParent.transform.localScale = healthParentScale;
-        
-        transform.localScale = theScale;
     }
 }
