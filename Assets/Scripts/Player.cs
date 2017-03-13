@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 
 public class Player : MonoBehaviour {
+	public int playerId = 1; //playerID is either 0, 1, or 2. 0 is both together. 1 is one skill, 2 is other
 	public float health = 1000;
 	public float currentHealth;
 	public float mana = 1000;
@@ -15,6 +16,8 @@ public class Player : MonoBehaviour {
     private bool canJump;
     public float maxVelocity;
 	public bool facingRight = true;
+	public int moveMultiplier = 1; //this is 1 for one character, and -1 for the other in order to mirror
+	//the movements
 	public Transform[] projectileSpawnLocations;
 
 	private Animator animator;
@@ -34,6 +37,8 @@ public class Player : MonoBehaviour {
 
 	public float fireCost = 100;
 	public float jumpCost = 10;
+	public BothPlayers sharedSoul;
+	public bool doubleMage; //this will let us know to trigger who the dominant character is or not
 	void Start () {
         rb2D = GetComponent<Rigidbody2D>();
 		animator = GetComponent<Animator> ();
@@ -92,7 +97,7 @@ public class Player : MonoBehaviour {
 	}
 
 	void FireBall(){
-		if (currentMana < fireCost) {
+		if (currentMana < fireCost || moveMultiplier == 0) {
 			return;
 		}
 		LoseMana (fireCost);
@@ -105,7 +110,7 @@ public class Player : MonoBehaviour {
 	}
 	void Jump(){
 		//Normal Jumping 
-		if (canJump)
+		if (canJump && moveMultiplier!= 0)
 		{
 			animator.SetBool("Jump", true);
 			rb2D.velocity = new Vector3(rb2D.velocity.x, jumpPower, 0);
@@ -113,7 +118,7 @@ public class Player : MonoBehaviour {
 		}
 
 		//Second Jumping, costs mana
-		else if (currentMana < jumpCost) {
+		else if (currentMana < jumpCost || moveMultiplier == 0) {
 			return;
 		}
 		LoseMana (jumpCost);
@@ -123,7 +128,7 @@ public class Player : MonoBehaviour {
 	}
 	void Move(){
 		float xInput = Input.GetAxisRaw ("Horizontal");
-		float xMovement = speed * xInput;
+		float xMovement = speed * xInput * moveMultiplier;
 		//Moving right
 		//print(prevXInput+","+ input);
 		animator.SetFloat("Speed",Math.Abs(xMovement));
@@ -153,8 +158,16 @@ public class Player : MonoBehaviour {
 		facingRight = !facingRight;
 		transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y,transform.localScale.z);
 	}
-
-
+		
+	public void setMain(){
+		moveMultiplier = 1;
+	}
+	public void setReverse(){
+		moveMultiplier = -1;
+	}
+	public void setOff(){
+		moveMultiplier = 0;
+	}
 	void OnCollisionEnter2D(Collision2D col) {
 		if (col.gameObject.tag.Equals("Floor")) {
 			animator.SetBool("Jump", false);
